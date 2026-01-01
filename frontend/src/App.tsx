@@ -56,16 +56,19 @@ function App() {
     }
   };
 
-  // ✨ ฟังก์ชันลบสินค้า
+  // ✨ ฟังก์ชันลบสินค้า (แก้ไขวงเล็บและปีกกา)
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("ต้องการลบสินค้านี้ใช่ไหม?")) return;
     try {
-      await axios.delete(`${API_URL}/delete-product/${id}`); // เปลี่ยนตรงนี้ให้ตรงกับ Backend
+      await axios.delete(`${API_URL}/delete-product/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
-      });
+      }); // วงเล็บปิดต้องอยู่ตรงนี้
+      
+      alert('ลบสินค้าสำเร็จ!');
       fetchProducts();
     } catch (error) {
-      alert('ลบไม่สำเร็จ (คุณอาจต้องเพิ่ม Route Delete ที่ Backend ก่อน)');
+      console.error(error);
+      alert('ลบไม่สำเร็จ (ตรวจสอบว่า Backend อัปเดต Route /delete-product หรือยัง)');
     }
   };
 

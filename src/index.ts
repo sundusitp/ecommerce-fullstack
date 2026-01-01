@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client'; // ต้องมีอันนี้!
+import { PrismaClient } from '@prisma/client'; // ✅ ต้อง Import ตัวนี้
 import userRoutes from './routes/userRoutes';
 import productRoutes from './routes/productRoutes';
 
 const app = express();
-const prisma = new PrismaClient(); // ต้องสร้างตัวแปร prisma ตรงนี้!
+const prisma = new PrismaClient(); // ✅ ต้องประกาศตัวแปร prisma ตรงนี้
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -15,11 +15,10 @@ app.get('/', (req, res) => {
   res.send('🚀 Ecommerce API Ready!');
 });
 
-// เชื่อมต่อ Routes
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 
-// 🗑️ ประตูสำหรับการลบสินค้า (เขียนครั้งเดียวพอ)
+// ✅ แก้ไข Route ลบให้เป็นมาตรฐานเดียว
 app.delete('/delete-product/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -29,7 +28,7 @@ app.delete('/delete-product/:id', async (req, res) => {
     res.json({ message: 'ลบสำเร็จแล้ว!' });
   } catch (error) {
     console.error("Delete Error:", error);
-    res.status(500).json({ error: 'ลบไม่ได้ อาจจะไม่มี ID นี้ หรือระบบขัดข้อง' });
+    res.status(500).json({ error: 'ลบไม่ได้ อาจจะไม่มี ID นี้ในฐานข้อมูล' });
   }
 });
 
