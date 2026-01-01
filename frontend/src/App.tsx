@@ -86,7 +86,7 @@ const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial', color: '#eee' }}>
-      <h1>🛒 ขั้นเทพ Ecommerce Pro</h1>
+      <h1>🛒 ร้่้าน Ecommerce</h1>
 
       {/* ตะกร้าสินค้า */}
       <div style={{ background: '#222', padding: '15px', borderRadius: '10px', marginBottom: '20px', border: '1px solid #444' }}>
