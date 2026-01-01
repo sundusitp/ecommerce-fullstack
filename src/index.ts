@@ -42,6 +42,20 @@ app.delete('/products/:id', async (req, res) => {
   }
 });
 
+// 🗑️ เพิ่มประตูสำหรับลบสินค้า (Route Delete)
+app.delete('/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.product.delete({
+      where: { id: Number(id) },
+    });
+    res.json({ message: 'ลบสำเร็จแล้ว!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'ลบไม่ได้ อาจจะไม่มีไอดีนี้ในระบบ' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
