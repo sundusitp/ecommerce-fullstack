@@ -21,7 +21,7 @@ function App() {
   // 1. ดึงข้อมูลสินค้า
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/products');
+      const response = await axios.get('https://ecommerce-api-wo04.onrender.com');
       setProducts(response.data);
     } catch (error) {
       console.error('Error:', error);
