@@ -60,7 +60,7 @@ function App() {
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("ต้องการลบสินค้านี้ใช่ไหม?")) return;
     try {
-      await axios.delete(`${API_URL}/products/${id}`, {
+      await axios.delete(`${API_URL}/delete-product/${id}`); // เปลี่ยนตรงนี้ให้ตรงกับ Backend
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProducts();
