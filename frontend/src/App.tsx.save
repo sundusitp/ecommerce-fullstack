@@ -1,11 +1,6 @@
-import { useEffect, useState } from 'react';
+ปimport { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
-
-// ----------------------------------------------------
-// 1. ตั้งค่า URL ของ Backend (Render) ไว้ที่ตัวแปรเดียว แก้ที่เดียวจบ
-const API_URL = 'https://ecommerce-api-wo04.onrender.com';
-// ----------------------------------------------------
 
 interface Product {
   id: number;
@@ -26,13 +21,10 @@ function App() {
   // 1. ดึงข้อมูลสินค้า
   const fetchProducts = async () => {
     try {
-      // ✅ แก้จุดที่ 1: เปลี่ยน URL ให้ถูกต้อง (เติม /products)
-      const response = await axios.get(`${API_URL}/products`);
+      const response = await axios.get('https://ecommerce-api-wo04.onrender.com');
       setProducts(response.data);
     } catch (error) {
-      console.error('Error fetching products:', error);
-      // ถ้า Error ให้ set เป็น array ว่าง กันเว็บพัง
-      setProducts([]); 
+      console.error('Error:', error);
     }
   };
 
@@ -43,15 +35,13 @@ function App() {
   // 2. ฟังก์ชัน Login
   const handleLogin = async () => {
     try {
-      // ✅ แก้จุดที่ 2: ใช้ API_URL ของ Render แทน localhost
-      const response = await axios.post(`${API_URL}/users/login`, {
+      const response = await axios.post('http://localhost:3000/users/login', {
         email, password
       });
-      setToken(response.data.token); 
+      setToken(response.data.token); // เก็บ Token ไว้ในตัวแปร
       alert('Login สำเร็จ! ตอนนี้คุณคือเจ้าของร้านแล้ว 😎');
     } catch (error) {
-      alert('รหัสผิดครับพี่ชาย! (หรือระบบหลังบ้านยังไม่ตื่น)');
-      console.error(error);
+      alert('รหัสผิดครับพี่ชาย!');
     }
   };
 
@@ -60,23 +50,21 @@ function App() {
     try {
       if (!token) return alert('ต้อง Login ก่อนนะ!');
 
-      // ✅ แก้จุดที่ 3: ใช้ API_URL ของ Render แทน localhost
-      await axios.post(`${API_URL}/products`, 
+      await axios.post('http://localhost:3000/products', 
         {
           name: newProductName,
           price: Number(newProductPrice),
           stock: 10
         },
         {
-          headers: { Authorization: `Bearer ${token}` } 
+          headers: { Authorization: `Bearer ${token}` } // แนบบัตรผ่านไปให้ยาม
         }
       );
       
       alert('ลงขายสินค้าเรียบร้อย!');
-      fetchProducts(); 
+      fetchProducts(); // ดึงข้อมูลใหม่มาโชว์ทันที
     } catch (error) {
       alert('สร้างสินค้าไม่สำเร็จ');
-      console.error(error);
     }
   };
 
@@ -84,16 +72,16 @@ function App() {
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto', fontFamily: 'Arial' }}>
       <h1>🛒 ร้านค้า Ecommerce ขั้นเทพ</h1>
 
-      {/* ส่วน Login */}
+      {/* ส่วน Login (จะโชว์เฉพาะตอนยังไม่มี Token) */}
       {!token ? (
-        <div style={{ background: '#333', padding: '20px', borderRadius: '10px', marginBottom: '20px', color: 'white' }}>
+        <div style={{ background: '#333', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
           <h2>🔐 เข้าสู่ระบบ (สำหรับคนขาย)</h2>
           <input placeholder="Email" onChange={e => setEmail(e.target.value)} style={{ margin: '5px' }} />
           <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={{ margin: '5px' }} />
           <button onClick={handleLogin}>Login</button>
         </div>
       ) : (
-        <div style={{ background: '#004d00', padding: '20px', borderRadius: '10px', marginBottom: '20px', color: 'white' }}>
+        <div style={{ background: '#004d00', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
           <h2>✅ คุณอยู่ในระบบแล้ว (Admin)</h2>
           <h3>ลงขายสินค้าใหม่</h3>
           <input placeholder="ชื่อสินค้า" onChange={e => setNewProductName(e.target.value)} style={{ margin: '5px' }} />
@@ -105,15 +93,12 @@ function App() {
 
       {/* รายการสินค้า */}
       <div style={{ display: 'grid', gap: '10px' }}>
-        {/* ✅ แก้จุดที่ 4: ใส่กันเหนียว products?.map และ || [] */}
-        {(products || []).map((p) => (
+        {products.map((p) => (
           <div key={p.id} style={{ border: '1px solid #555', padding: '10px', borderRadius: '5px', display: 'flex', justifyContent: 'space-between' }}>
             <span>📱 <b>{p.name}</b></span>
             <span style={{ color: 'lightgreen' }}>฿{p.price.toLocaleString()}</span>
           </div>
         ))}
-        {/* ถ้าไม่มีสินค้า ให้แสดงข้อความ */}
-        {(!products || products.length === 0) && <p>ยังไม่มีสินค้า หรือ กำลังโหลด...</p>}
       </div>
     </div>
   );
