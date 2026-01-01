@@ -17,6 +17,18 @@ app.get('/', (req, res) => {
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 
+app.delete('/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.product.delete({
+      where: { id: Number(id) },
+    });
+    res.json({ message: 'Deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
