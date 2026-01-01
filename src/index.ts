@@ -29,6 +29,19 @@ app.delete('/products/:id', async (req, res) => {
   }
 });
 
+// เพิ่ม Route สำหรับลบสินค้า
+app.delete('/products/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.product.delete({
+      where: { id: Number(id) }
+    });
+    res.json({ message: 'ลบสินค้าสำเร็จ' });
+  } catch (error) {
+    res.status(500).json({ error: 'ไม่สามารถลบสินค้าได้' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });

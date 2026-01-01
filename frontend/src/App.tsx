@@ -69,12 +69,17 @@ function App() {
     }
   };
 
-  // ✨ ฟังก์ชันจัดการตะกร้า
-  const addToCart = (product: Product) => {
-    setCart([...cart, product]);
+  // แก้ไขฟังก์ชันหยิบใส่ตะกร้า (บังคับให้ราคาเป็น Number)
+const addToCart = (product: Product) => {
+  const formattedProduct = {
+    ...product,
+    price: Number(product.price) // บังคับแปลงเป็นตัวเลขตรงนี้
   };
+  setCart([...cart, formattedProduct]);
+};
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
+// คำนวณยอดรวม
+const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial', color: '#eee' }}>
