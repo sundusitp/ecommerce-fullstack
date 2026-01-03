@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'https://ecommerce-api-wo04.onrender.com';
+const API_URL = 'http://localhost:3000';
 
 interface Product {
   id: number;
