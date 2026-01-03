@@ -12,17 +12,15 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  role      String   @default("CUSTOMER")
+  role      String   @default("USER")
   createdAt DateTime @default(now())
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  price       Decimal  @db.Decimal(10, 2)
-  stock       Int
-  description String?
-  // ✨ เพิ่มบรรทัดนี้ครับ (เก็บ Link รูปภาพ, ถ้าไม่ใส่จะเป็นรูป Default)
-  imageUrl    String   @default("https://placehold.co/600x400?text=No+Image") 
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  stock     Int      @default(0)   // <--- บรรทัดนี้ที่เพิ่มมาครับ!
+  imageUrl  String?
+  createdAt DateTime @default(now())
 }
