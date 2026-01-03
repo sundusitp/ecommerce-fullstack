@@ -20,7 +20,7 @@ model Product {
   id        Int      @id @default(autoincrement())
   name      String
   price     Float
-  stock     Int      @default(0)   // <--- บรรทัดนี้ที่เพิ่มมาครับ!
+  stock     Int      @default(0)
   imageUrl  String?
   createdAt DateTime @default(now())
 }

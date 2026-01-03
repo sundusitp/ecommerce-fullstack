@@ -20,7 +20,6 @@ export const createProduct = async (req: Request, res: Response) => {
         name,
         price,
         stock,
-        description
       }
     });
     res.json(newProduct);
