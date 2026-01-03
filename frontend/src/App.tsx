@@ -30,7 +30,9 @@ function App() {
   // Login & Register States
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegisterMode, setIsRegisterMode] = useState(false); // ✨ โหมดสมัครสมาชิก
+  
+  // ✂️ ส่วนที่ 1: ผมปิดตัวแปรสลับโหมดไว้ (ไม่ได้ใช้แล้ว เพราะจะบังคับ Login อย่างเดียว)
+  // const [isRegisterMode, setIsRegisterMode] = useState(false); 
 
   // Form States
   const [newProductName, setNewProductName] = useState("");
@@ -54,24 +56,15 @@ function App() {
       setToken(response.data.token);
       alert('✅ Login สำเร็จ! ยินดีต้อนรับครับ');
     } catch (error) { 
-      alert('❌ Login ไม่สำเร็จ (User นี้อาจจะหายไปตอนแก้ Database ลองกด "สมัครใหม่" ดูครับ)'); 
+      alert('❌ Login ไม่สำเร็จ (Email หรือ Password ผิด)'); 
     }
   };
 
-  // ✨ ฟังก์ชัน Register (สมัครสมาชิกใหม่)
-  const handleRegister = async () => {
-    try {
-      await axios.post(`${API_URL}/users/register`, { 
-        email, 
-        password, 
-        name: "Admin" 
-      });
-      alert('✨ สมัครสมาชิกสำเร็จ! กรุณากด Login อีกครั้ง');
-      setIsRegisterMode(false); // กลับไปหน้า Login
-    } catch (error) {
-      alert('❌ สมัครไม่สำเร็จ (Email นี้อาจจะมีแล้ว)');
-    }
+  // ✂️ ส่วนที่ 2: ฟังก์ชัน Register เก็บไว้ก็ได้ แต่เราจะไม่เรียกใช้ผ่านปุ่ม
+  /* const handleRegister = async () => {
+    ... (ซ่อนไว้)
   };
+  */
 
   const handleCreateProduct = async () => {
     try {
@@ -160,27 +153,22 @@ function App() {
       {/* 🔐 Admin Panel */}
       <div className="box-panel">
         {!token ? (
-          // ✨ ส่วน Login / Register ที่แก้ให้ตรงกลางแล้ว
+          // ✨ ส่วน Login (ปรับให้เหลือแค่ Login)
           <div style={{display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center'}}>
             <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
               <span style={{fontWeight: 'bold'}}>
-                {isRegisterMode ? "📝 สมัครสมาชิก:" : "🔐 Admin Login:"}
+                 🔐 Admin Login:
               </span>
               <input placeholder="Email" onChange={e => setEmail(e.target.value)} style={{width: '150px'}} />
               <input type="password" placeholder="Pass" onChange={e => setPassword(e.target.value)} style={{width: '150px'}} />
               
-              {isRegisterMode ? (
-                <button onClick={handleRegister} className="btn-primary" style={{background: '#00f260', color: 'black'}}>สมัครเลย</button>
-              ) : (
-                <button onClick={handleLogin} className="btn-admin">Login</button>
-              )}
+              <button onClick={handleLogin} className="btn-admin">Login</button>
             </div>
             
-            {/* ปุ่มสลับโหมด */}
-            <p style={{fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline', color: '#888'}} 
-               onClick={() => setIsRegisterMode(!isRegisterMode)}>
-               {isRegisterMode ? "กลับไปหน้า Login" : "ยังไม่มี User? กดเพื่อสมัครใหม่"}
-            </p>
+            {/* ✂️ ส่วนที่ 3: ตรงนี้คือลิงก์ "ยังไม่มี User?" ผมลบออกให้แล้ว 
+               ตอนนี้หน้าเว็บจะโล่งๆ สะอาดตา และมีแค่ช่อง Login เท่านั้น
+            */}
+
           </div>
         ) : (
           <div>
