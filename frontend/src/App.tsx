@@ -13,7 +13,10 @@ interface Product {
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [token, setToken] = useState<string>("");
-  const [cart, setCart] = useState<Product[]>([]); // ✨ ระบบตะกร้า
+  const [cart, setCart] = useState<Product[]>([]);
+  
+  // ✨ State สำหรับค้นหา
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,43 +53,47 @@ function App() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('สร้างสินค้าสำเร็จ!');
+      setNewProductName(""); // เคลียร์ช่อง
+      setNewProductPrice(""); // เคลียร์ช่อง
       fetchProducts();
     } catch (error) {
       alert('สร้างไม่สำเร็จ');
     }
   };
 
-  // ✨ ฟังก์ชันลบสินค้า (แก้ไขวงเล็บและปีกกา)
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("ต้องการลบสินค้านี้ใช่ไหม?")) return;
     try {
+      // ใช้ Route ที่เราแก้ไปเมื่อกี้ (/delete-product/)
       await axios.delete(`${API_URL}/delete-product/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
-      }); // วงเล็บปิดต้องอยู่ตรงนี้
-      
+      });
       alert('ลบสินค้าสำเร็จ!');
       fetchProducts();
     } catch (error) {
       console.error(error);
-      alert('ลบไม่สำเร็จ (ตรวจสอบว่า Backend อัปเดต Route /delete-product หรือยัง)');
+      alert('ลบไม่สำเร็จ (เช็ค Backend หรือ Token)');
     }
   };
 
-  // แก้ไขฟังก์ชันหยิบใส่ตะกร้า (บังคับให้ราคาเป็น Number)
-const addToCart = (product: Product) => {
-  const formattedProduct = {
-    ...product,
-    price: Number(product.price) // บังคับแปลงเป็นตัวเลขตรงนี้
+  const addToCart = (product: Product) => {
+    const formattedProduct = {
+      ...product,
+      price: Number(product.price)
+    };
+    setCart([...cart, formattedProduct]);
   };
-  setCart([...cart, formattedProduct]);
-};
 
-// คำนวณยอดรวม
-const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
+  const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
+
+  // 🔍 Logic การกรองสินค้า (Search)
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', fontFamily: 'Arial', color: '#eee' }}>
-      <h1>🛒 ร้่้าน Ecommerce</h1>
+      <h1>🛒 Sundusit Shop Online</h1>
 
       {/* ตะกร้าสินค้า */}
       <div style={{ background: '#222', padding: '15px', borderRadius: '10px', marginBottom: '20px', border: '1px solid #444' }}>
@@ -101,7 +108,7 @@ const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
         <button onClick={() => setCart([])} style={{ background: '#444' }}>ล้างตะกร้า</button>
       </div>
 
-      {/* ระบบ Admin */}
+      {/* ส่วน Admin */}
       {!token ? (
         <div style={{ background: '#333', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
           <h3>🔐 Admin Login</h3>
@@ -112,16 +119,27 @@ const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
       ) : (
         <div style={{ background: '#004d00', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
           <h3>➕ เพิ่มสินค้าใหม่</h3>
-          <input placeholder="ชื่อสินค้า" onChange={e => setNewProductName(e.target.value)} />
-          <input type="number" placeholder="ราคา" onChange={e => setNewProductPrice(e.target.value)} />
+          <input placeholder="ชื่อสินค้า" value={newProductName} onChange={e => setNewProductName(e.target.value)} />
+          <input type="number" placeholder="ราคา" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} />
           <button onClick={handleCreateProduct}>เพิ่มสินค้า</button>
           <button onClick={() => setToken("")} style={{ background: 'red', marginLeft: '10px' }}>Logout</button>
         </div>
       )}
 
-      {/* รายการสินค้า */}
+      {/* 🔍 ช่องค้นหา (Search Bar) */}
+      <div style={{ marginBottom: '20px' }}>
+        <input 
+          type="text" 
+          placeholder="🔍 ค้นหาสินค้า..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ width: '100%', padding: '10px', fontSize: '16px', borderRadius: '5px' }}
+        />
+      </div>
+
+      {/* รายการสินค้า (ใช้ filteredProducts) */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-        {(products || []).map((p) => (
+        {(filteredProducts.length > 0 ? filteredProducts : []).map((p) => (
           <div key={p.id} style={{ border: '1px solid #444', padding: '15px', borderRadius: '10px', textAlign: 'center' }}>
             <div style={{ fontSize: '40px' }}>📦</div>
             <h3>{p.name}</h3>
@@ -135,6 +153,9 @@ const totalPrice = cart.reduce((sum, item) => sum + Number(item.price), 0);
           </div>
         ))}
       </div>
+      
+      {/* ถ้าค้นหาแล้วไม่เจอ */}
+      {filteredProducts.length === 0 && <p style={{textAlign: 'center'}}>ไม่พบสินค้าที่คุณค้นหา...</p>}
     </div>
   );
 }
