@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://ecommerce-fullstack-api.onrender.com';
 
 interface Product {
   id: number;
