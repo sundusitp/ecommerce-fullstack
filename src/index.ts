@@ -32,6 +32,26 @@ app.delete('/delete-product/:id', async (req, res) => {
   }
 });
 
+// ✏️ ประตูสำหรับแก้ไขสินค้า (Update)
+app.put('/products/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, price } = req.body;
+
+  try {
+    const updatedProduct = await prisma.product.update({
+      where: { id: Number(id) },
+      data: { 
+        name: name, 
+        price: Number(price) 
+      },
+    });
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ error: 'แก้ไขสินค้าไม่สำเร็จ' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running at port ${port}`);
 });
