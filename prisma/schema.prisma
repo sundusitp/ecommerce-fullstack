@@ -22,5 +22,7 @@ model Product {
   price       Decimal  @db.Decimal(10, 2)
   stock       Int
   description String?
+  // ✨ เพิ่มบรรทัดนี้ครับ (เก็บ Link รูปภาพ, ถ้าไม่ใส่จะเป็นรูป Default)
+  imageUrl    String   @default("https://placehold.co/600x400?text=No+Image") 
   createdAt   DateTime @default(now())
 }

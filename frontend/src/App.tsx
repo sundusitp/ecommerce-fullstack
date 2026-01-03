@@ -8,39 +8,38 @@ interface Product {
   id: number;
   name: string;
   price: number;
+  imageUrl: string; // ✨ เพิ่ม Type รูปภาพ
 }
 
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [token, setToken] = useState<string>("");
-  // ✨ 1. โหลดตะกร้าจากความจำเครื่อง (LocalStorage) ตั้งแต่เริ่ม
+  
+  // 🛒 ตะกร้าแบบจำข้อมูลได้ (Persistent Cart)
   const [cart, setCart] = useState<Product[]>(() => {
-  const savedCart = localStorage.getItem("myShopCart");
-  return savedCart ? JSON.parse(savedCart) : [];
-});
+    const saved = localStorage.getItem("myShopCart");
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  // ✨ 2. บันทึกตะกร้าลงเครื่องทุกครั้งที่มีการเพิ่ม/ลบของ
-useEffect(() => {
-  localStorage.setItem("myShopCart", JSON.stringify(cart));
-}, [cart]);
+  useEffect(() => {
+    localStorage.setItem("myShopCart", JSON.stringify(cart));
+  }, [cart]);
+
   const [searchTerm, setSearchTerm] = useState("");
-
-  // State สำหรับ Login และ Form
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Form States
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
-
-  // ✨ State สำหรับโหมดแก้ไข (เก็บ ID ของสินค้าที่จะแก้)
+  const [newProductImage, setNewProductImage] = useState(""); // ✨ ช่องเก็บ Link รูป
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const fetchProducts = async () => {
     try {
       const response = await axios.get(`${API_URL}/products`);
       setProducts(response.data);
-    } catch (error) {
-      setProducts([]);
-    }
+    } catch (error) { setProducts([]); }
   };
 
   useEffect(() => { fetchProducts(); }, []);
@@ -56,54 +55,59 @@ useEffect(() => {
   const handleCreateProduct = async () => {
     try {
       await axios.post(`${API_URL}/products`, 
-        { name: newProductName, price: Number(newProductPrice), stock: 10 },
+        { 
+          name: newProductName, 
+          price: Number(newProductPrice), 
+          imageUrl: newProductImage // ✨ ส่งรูปไป Backend
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('✨ สร้างสินค้าสำเร็จ!');
-      setNewProductName(""); setNewProductPrice("");
+      clearForm();
       fetchProducts();
     } catch (error) { alert('สร้างไม่สำเร็จ'); }
   };
 
-  // ✏️ ฟังก์ชันเริ่มแก้ไข (ดึงข้อมูลขึ้นไปรอที่ช่อง Input)
-  const startEdit = (product: Product) => {
-    setEditingId(product.id);
-    setNewProductName(product.name);
-    setNewProductPrice(product.price.toString());
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // เลื่อนจอขึ้นบนสุด
-  };
-
-  // ❌ ยกเลิกการแก้ไข
-  const cancelEdit = () => {
-    setEditingId(null);
-    setNewProductName("");
-    setNewProductPrice("");
-  };
-
-  // 💾 บันทึกการแก้ไข (ส่งไป Backend)
   const handleUpdateProduct = async () => {
     if (!editingId) return;
     try {
       await axios.put(`${API_URL}/products/${editingId}`, 
-        { name: newProductName, price: Number(newProductPrice) },
+        { 
+          name: newProductName, 
+          price: Number(newProductPrice),
+          imageUrl: newProductImage // ✨ อัปเดตรูป
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert('✅ แก้ไขข้อมูลสำเร็จ!');
-      cancelEdit(); // เคลียร์สถานะ
+      clearForm();
       fetchProducts();
-    } catch (error) {
-      alert('แก้ไขไม่สำเร็จ (อย่าลืมเพิ่ม Route PUT ที่ Backend นะ!)');
-    }
+    } catch (error) { alert('แก้ไขไม่สำเร็จ'); }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!window.confirm("ต้องการลบสินค้านี้ใช่ไหม?")) return;
+    if (!window.confirm("ลบจริงนะ?")) return;
     try {
       await axios.delete(`${API_URL}/delete-product/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchProducts();
     } catch (error) { alert('ลบไม่สำเร็จ'); }
+  };
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
+    setNewProductName(product.name);
+    setNewProductPrice(product.price.toString());
+    setNewProductImage(product.imageUrl || ""); // ✨ ดึงรูปเดิมมาโชว์ (ถ้าไม่มีให้เป็นว่าง)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearForm = () => {
+    setEditingId(null);
+    setNewProductName("");
+    setNewProductPrice("");
+    setNewProductImage("");
   };
 
   const addToCart = (product: Product) => {
@@ -116,14 +120,14 @@ useEffect(() => {
   return (
     <div className="container">
       <header>
-        <h1>🛒 Ecommerce</h1>
+        <h1>🛒 Mu Ecommerce</h1>
         <p style={{textAlign: 'center', color: '#888'}}>แหล่งรวมสินค้าไอที แห่งอนาคต</p>
       </header>
 
-      {/* 🛒 ตะกร้าสินค้า */}
+      {/* 🛒 ตะกร้า */}
       {cart.length > 0 && (
         <div className="box-panel" style={{ borderLeft: '4px solid #00f260' }}>
-          <h2>🛍️ ตะกร้าสินค้า ({cart.length})</h2>
+          <h2>🛍️ ตะกร้า ({cart.length})</h2>
           <ul>
             {cart.map((item, index) => <li key={index}>{item.name} - ฿{item.price.toLocaleString()}</li>)}
           </ul>
@@ -132,10 +136,10 @@ useEffect(() => {
         </div>
       )}
 
-      {/* 🔐 Admin Panel (ใช้ร่วมกันทั้ง เพิ่ม และ แก้ไข) */}
+      {/* 🔐 Admin Panel */}
       <div className="box-panel">
         {!token ? (
-          <div style={{display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center'}}>
+          <div style={{display: 'flex', gap: '10px', justifyContent: 'center'}}>
             <span>🔐 Admin:</span>
             <input placeholder="Email" onChange={e => setEmail(e.target.value)} style={{width: '150px'}} />
             <input type="password" placeholder="Pass" onChange={e => setPassword(e.target.value)} style={{width: '150px'}} />
@@ -144,30 +148,20 @@ useEffect(() => {
         ) : (
           <div>
             <h3>{editingId ? "✏️ แก้ไขสินค้า" : "➕ เพิ่มสินค้าใหม่"}</h3>
-            
-            <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
-              <input 
-                placeholder="ชื่อสินค้า" 
-                value={newProductName} 
-                onChange={e => setNewProductName(e.target.value)} 
-              />
-              <input 
-                type="number" 
-                placeholder="ราคา" 
-                value={newProductPrice} 
-                onChange={e => setNewProductPrice(e.target.value)} 
-              />
+            <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px'}}>
+              <input placeholder="ชื่อสินค้า" value={newProductName} onChange={e => setNewProductName(e.target.value)} />
+              <input type="number" placeholder="ราคา" value={newProductPrice} onChange={e => setNewProductPrice(e.target.value)} />
+              {/* ✨ ช่องใส่ Link รูป */}
+              <input placeholder="URL รูปภาพ (https://...)" value={newProductImage} onChange={e => setNewProductImage(e.target.value)} />
             </div>
-
-            {/* ปุ่มจะเปลี่ยนไปตามสถานะ (เพิ่ม หรือ แก้ไข) */}
             {editingId ? (
               <div style={{display: 'flex', gap: '10px'}}>
-                <button onClick={handleUpdateProduct} className="btn-primary" style={{background: '#ffc107', color: 'black'}}>💾 บันทึกการแก้ไข</button>
-                <button onClick={cancelEdit} className="btn-secondary">❌ ยกเลิก</button>
+                <button onClick={handleUpdateProduct} style={{background: '#ffc107', color: 'black'}}>💾 บันทึก</button>
+                <button onClick={clearForm} className="btn-secondary">❌ ยกเลิก</button>
               </div>
             ) : (
               <div style={{display: 'flex', gap: '10px'}}>
-                 <button onClick={handleCreateProduct} className="btn-admin">+ ลงขายทันที</button>
+                 <button onClick={handleCreateProduct} className="btn-admin">+ ลงขาย</button>
                  <button onClick={() => setToken("")} style={{background: '#333', color: '#888'}}>Logout</button>
               </div>
             )}
@@ -175,38 +169,36 @@ useEffect(() => {
         )}
       </div>
 
-      {/* 🔍 Search */}
-      <div style={{marginBottom: '20px'}}>
-        <input 
-          placeholder="🔍 ค้นหา Gadget ที่คุณสนใจ..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ fontSize: '1.1rem' }}
-        />
-      </div>
+      <input 
+        placeholder="🔍 ค้นหาสินค้า..." 
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{ marginBottom: '20px', fontSize: '1.1rem' }}
+      />
 
       {/* 📦 Grid สินค้า */}
       <div className="product-grid">
-        {(filteredProducts.length > 0 ? filteredProducts : []).map((p) => (
+        {filteredProducts.map((p) => (
           <div key={p.id} className="product-card">
-            <span className="emoji-icon">📦</span>
+            {/* ✨ แสดงรูปภาพสินค้า (ถ้า Link เสียจะโชว์รูป Default) */}
+            <img 
+              src={p.imageUrl || "https://placehold.co/600x400?text=No+Image"} 
+              alt={p.name} 
+              style={{width: '100%', height: '200px', objectFit: 'cover', borderRadius: '10px', marginBottom: '10px'}}
+              onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400?text=No+Image"; }} 
+            />
             <h3>{p.name}</h3>
             <p className="price-tag">฿{p.price.toLocaleString()}</p>
-            
-            <button onClick={() => addToCart(p)} className="btn-add">หยิบใส่ตะกร้า</button>
-            
-            {/* แสดงปุ่มแก้ไข/ลบ เฉพาะตอน Login */}
+            <button onClick={() => addToCart(p)} className="btn-add">ใส่ตะกร้า</button>
             {token && (
               <div style={{marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '5px'}}>
-                <button onClick={() => startEdit(p)} className="btn-secondary" style={{fontSize: '0.8rem'}}>✏️ แก้ไข</button>
+                <button onClick={() => startEdit(p)} className="btn-secondary" style={{fontSize: '0.8rem'}}>✏️ แก้</button>
                 <button onClick={() => handleDeleteProduct(p.id)} className="btn-delete" style={{fontSize: '0.8rem'}}>ลบ</button>
               </div>
             )}
           </div>
         ))}
       </div>
-      
-      {filteredProducts.length === 0 && <p style={{textAlign: 'center', marginTop: '50px', color: '#666'}}>ไม่พบสินค้า...</p>}
     </div>
   );
 }

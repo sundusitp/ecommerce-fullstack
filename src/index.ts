@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client'; // ✅ ต้อง Import ตัวนี้
+import { PrismaClient } from '@prisma/client';
 import userRoutes from './routes/userRoutes';
 import productRoutes from './routes/productRoutes';
 
 const app = express();
-const prisma = new PrismaClient(); // ✅ ต้องประกาศตัวแปร prisma ตรงนี้
+const prisma = new PrismaClient();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -15,10 +15,31 @@ app.get('/', (req, res) => {
   res.send('🚀 Ecommerce API Ready!');
 });
 
+// ✅ 1. เพิ่ม Route สร้างสินค้า (POST) ที่รองรับ imageUrl
+app.post('/products', async (req, res) => {
+  // รับ imageUrl เพิ่มเข้ามา
+  const { name, price, stock, imageUrl } = req.body;
+  try {
+    const product = await prisma.product.create({
+      data: { 
+        name, 
+        price: Number(price), 
+        stock: stock || 0,
+        // ถ้ามีรูปส่งมาให้ใช้รูปนั้น ถ้าไม่มีให้เป็น undefined (Prisma จะใช้ค่า Default เอง)
+        imageUrl: imageUrl || undefined 
+      }, 
+    });
+    res.json(product);
+  } catch (error) {
+    console.error("Create Error:", error);
+    res.status(500).json({ error: "สร้างสินค้าไม่สำเร็จ" });
+  }
+});
+
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 
-// ✅ แก้ไข Route ลบให้เป็นมาตรฐานเดียว
+// ✅ Route ลบสินค้า
 app.delete('/delete-product/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -32,17 +53,18 @@ app.delete('/delete-product/:id', async (req, res) => {
   }
 });
 
-// ✏️ ประตูสำหรับแก้ไขสินค้า (Update)
+// ✏️ Route แก้ไขสินค้า (Update) - รองรับ imageUrl
 app.put('/products/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, price } = req.body;
+  const { name, price, imageUrl } = req.body; // รับ imageUrl เพิ่ม
 
   try {
     const updatedProduct = await prisma.product.update({
       where: { id: Number(id) },
       data: { 
         name: name, 
-        price: Number(price) 
+        price: Number(price),
+        imageUrl: imageUrl // อัปเดตข้อมูลรูปภาพ
       },
     });
     res.json(updatedProduct);
