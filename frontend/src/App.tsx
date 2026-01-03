@@ -13,7 +13,16 @@ interface Product {
 function App() {
   const [products, setProducts] = useState<Product[]>([]);
   const [token, setToken] = useState<string>("");
-  const [cart, setCart] = useState<Product[]>([]);
+  // ✨ 1. โหลดตะกร้าจากความจำเครื่อง (LocalStorage) ตั้งแต่เริ่ม
+  const [cart, setCart] = useState<Product[]>(() => {
+  const savedCart = localStorage.getItem("myShopCart");
+  return savedCart ? JSON.parse(savedCart) : [];
+});
+
+  // ✨ 2. บันทึกตะกร้าลงเครื่องทุกครั้งที่มีการเพิ่ม/ลบของ
+useEffect(() => {
+  localStorage.setItem("myShopCart", JSON.stringify(cart));
+}, [cart]);
   const [searchTerm, setSearchTerm] = useState("");
 
   // State สำหรับ Login และ Form
