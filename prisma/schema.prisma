@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql"  // 👈 เปลี่ยนจาก sqlite เป็น postgresql
   url      = env("DATABASE_URL")
 }
 
@@ -14,6 +14,9 @@ model User {
   name      String?
   role      String   @default("USER")
   createdAt DateTime @default(now())
+
+  // 👇 เพิ่มความสัมพันธ์: User 1 คน มีได้หลาย Order
+  orders    Order[]
 }
 
 model Product {
@@ -23,4 +26,33 @@ model Product {
   stock     Int      @default(0)
   imageUrl  String?
   createdAt DateTime @default(now())
+
+  // 👇 เพิ่มความสัมพันธ์: สินค้า 1 ชิ้น ไปอยู่ในหลายบิลได้
+  orderItems OrderItem[]
+}
+
+// ✅ ตารางใหม่: ใบสั่งซื้อ (Header)
+model Order {
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  totalPrice Float
+  status     String   @default("PENDING") // PENDING=รอจ่าย, PAID=จ่ายแล้ว
+
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+
+  items      OrderItem[]
+}
+
+// ✅ ตารางใหม่: รายการย่อยในใบสั่งซื้อ (Detail)
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int     @default(1) // จำนวนกี่ชิ้น
+  price     Float   // ราคาต่อชิ้น ณ ตอนที่ซื้อ
+
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
 }
